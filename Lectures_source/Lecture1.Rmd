@@ -1,0 +1,542 @@
+---
+title: "STAT 120 C"
+subtitle: "Introduction to Probability and Statistics III"
+author: "Dustin Pluta"
+date: "2019/04/01"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis-fonts, "my-theme.css", "hygge.css"]
+    lib_dir: libs
+    mathjax: "https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_HTMLorMML"
+    nature:
+      highlightStyle: haddock
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(echo = TRUE, fig.align="center")
+```
+
+# Intro to STATS 120 C
+
+.pull-left[.full-width[.content-box-yellow[
+STATS 120C is the last of a three-quarter series on introduction to probability and statistics. The
+goal of this course is to introduce basic principles of probability and statistical inference, and
+learn how these methods are applied to real world problems. 
+
+Topics that will be covered include __statistical hypothesis testing, linear regression, analysis of
+variance, and model checking.__]]]
+
+```{r, fig.align='right', echo=FALSE, fig.width=4.5}
+library(ggplot2)
+y <- rnorm(100, seq(0, 1, length.out = 100), seq(0.1, 0.5, length.out = 100))
+ggplot(data.frame(y = y, x = seq(0.1, 1, length.out = 100))) + 
+  geom_point(aes(x = x, y = y)) + 
+  geom_smooth(aes(x = x, y = y), method = "lm") + 
+  theme_classic()
+```
+
+---
+
+# STAT 120C Course Info
+
+- Email: dpluta@uci.edu
+- Website: https://github.com/dspluta/STAT120C
+- Class Times: MWF 10 - 10:50am
+- Room: ICS 174
+- Office Hours: M 11:30am - 12:3pm; Th 2 - 3pm in DBH ----
+- TA Office Hours: W & Th 11am - 12pm in DBH 2013
+- Discussion: MSTB 124
+- Discussion Hours: W 5 - 5:50pm; 6 - 6:50pm
+
+---
+
+# STAT 120C Course Info
+
+- __Text__: _Mathematical Statistics and Data Analysis_, 3rd Edition. John Rice. ISBN: 9788131519547.
+
+- __Computing__: Many examples and problems will be given in `R`, which is available at http://www.r-project.org.  I also recommend using the development environment RStudio: https://www.rstudio.com/.
+
+
+---
+
+# STAT 120C Course Info
+
+##### Grading
+
+- 30%: Eight (8) homework assignments
+- 5%: Two (2) in-class quizzes
+- 30%: Midterm Exam (Week 5)
+- 35%: Final Exam (June 10th, 10:30am - 12:30pm)
+- __Homework__ will be assigned on Monday and __due the following Monday by 5pm__ in the _STAT 120C Pluta_ dropbox located near DBH 2013.
+
+- Late homework will not be accepted!
+
+- Exam make-ups will not be given except in case of emergency.
+
+- One page of notes will be allowed for the midterm exam.
+
+- Two pages of notes will be allowed for the final exam.
+
+- Calculators will not be needed nor allowed.
+
+---
+
+# Week 1
+
+##### Review of 120 B
+
+- Sample mean and variance of normal distribution
+
+- NHST, reference distributions, rejection regions
+
+- Equivalence of t-test and Likelihood Ratio Test
+
+---
+
+# Review of 120 B
+
+### Types of Problems in Statistics
+
+- __Hypothesis Testing__: Make a binary (Yes/No) decision regarding some unknown quantity.
+
+- __Estimation__: Estimate the value of some unknown quantity, and characterize the uncertainty in the estimate.
+
+- __Prediction__: Predict the values of new observations from existing observations.
+
+---
+
+# Review of 120 B
+
+#### Hypothesis Testing
+
+In general, a Null Hypothesis Significance Test (NHST) has the form
+
+$$\begin{aligned}
+&H_0: \theta \in \Omega_0, ~~~ \text{(null hypothesis)}\\
+&H_1: \theta \in \Omega_1, ~~~ \text{(alternative hypothesis)}
+\end{aligned}$$
+
+where $\Omega_0 \subset \mathbb{R}$ is the set of parameter values satisfying the null hypothesis, and similarly for $\Omega_1$.
+
+- When $\Omega_0 = \{\theta_0\}$ (contains a single value), then $H_0$ is $H_0: \theta = \theta_0$, and is called a _simple hypothesis_.
+
+- If $\Omega_0$ contains more than one value, $H_0$ is called a _composite hypothesis_.
+
+---
+
+# Review of 120B
+
+##### Null Hypothesis Significance Testing
+
+$$\begin{aligned}
+&H_0: \theta \in \Omega_0, ~~~ \text{(null hypothesis)}\\
+&H_1: \theta \in \Omega_1, ~~~ \text{(alternative hypothesis)}
+\end{aligned}$$
+
+at level of significance $\alpha$, given a sample $X_1, \dots, X_n$.
+
+1. State the null and alternative hypotheses, the assumed sampling distribution of the data.
+
+2. Choose an appropriate test statistic $T(X)$ for the null hypothesis.
+
+3. Check model assumptions. (e.g. QQ-plot, histogram, scatterplot)
+
+4. Compute the reference distribution and corresponding $P$-value for the test statistic.
+
+5. Conclude one of:
+
+  - $P < \alpha \rightarrow$ __Fail to reject__ $H_0$: 
+  There is insufficient evidence to reject the null hypothesis at the $\alpha$ level of significance. 
+  - $P \ge \alpha \rightarrow$ __Reject__ $H_0$: 
+  There is sufficient evidence to reject the null hypothesis (and accept the alternative hypothesis) at the $\alpha$ level of significance.
+
+
+---
+
+# Review of 120B
+
+.content-box-blue[__Definition: P-value__
+
+The __P-value__ of a NHST is the probability of seeing a test statistic as extreme or more extremem than the observed test statistic, assuming the null hypothesis is true.]
+
+```{r, echo = FALSE, fig.align='center', fig.width=6, fig.height=4}
+set.seed(1234)
+n <- 20
+mu <- 0.9
+sigma <- 0.5
+x <- rnorm(n, mu, sigma)
+
+mu_0 <- 1
+s_0 <- sqrt(1 / n * sum((x - mu_0)^2))
+mu_hat <- mean(x)
+s <- sqrt(1 / (n - 1) * sum((x - mu_hat)^2))
+T_stat <- (mu_hat - mu_0) / (s / sqrt(n))
+t_seq <- seq(-4, 4, 0.01)
+t_pdf <- dt(t_seq, df = n - 1)
+curve(dt(x, df = n - 1), from = -4, to = 4, ylab = "t Density", xlab = "x",
+      main = "Two-sided t-test")
+polygon(c(t_seq[t_seq <= T_stat], T_stat), c(t_pdf[t_seq <= T_stat], 0), col=rgb(0, 0, 1, 0.6))
+polygon(c(t_seq[t_seq >= -T_stat], -T_stat), c(t_pdf[t_seq >= -T_stat], 0), col=rgb(0, 0, 1, 0.6))
+legend("topright", col = c("blue"), legend = c("P-value"), lty = 1)
+```
+
+---
+
+# Review of 120B
+
+##### Normal Distribution: PDF
+
+The probability density function of $X \sim \mathcal{N}(\mu, \sigma^2)$ is
+
+$$f(x) = \frac{1}{\sqrt{2\pi\sigma^2}}\exp\left\{-\frac{(x - \mu)^2}{2\sigma^2}\right\}$$
+
+---
+# Review of 120B
+
+##### Normal Distribution: PDF
+
+
+```{r, fig.align='center', fig.height=4}
+x <- curve(dnorm(x, mean = 0, sd = 0.5), 
+           from = -3, to = 3, ylab = "Density", 
+           col = "blue", main = "PDF of N(0, sigma^2)")
+curve(dnorm(x, mean = 0, sd = 2), add = T, col = "red")
+curve(dnorm(x, mean = 0, sd = 1), add = T)
+legend("topright", legend = c("sigma = 0.5", "sigma = 1", "sigma = 2"), 
+       col = c("blue", "black", "red"), lty = 1)
+```
+
+
+---
+
+# Review of 120B
+
+##### Sums of Normally Distributed Variables
+
+Suppose $X_1 \sim \mathcal{N}(\mu_1, \sigma^2_1), X_2 \sim \mathcal{N}(\mu_2, \sigma^2_2)$, and let $a, b$ be real constants.
+
+1. $aX_1 + bX_2 \sim \mathcal{N}(a\mu_1 + b \mu_2, a^2\sigma^2_1 + b^2\sigma^2_2)$.
+
+2. In particular, for $X_i \overset{iid}\sim \mathcal{N}(\mu, \sigma^2), i = 1, \dots, n$, we have 
+$$\overline{X} := \frac{1}{n} \sum_{i = 1}^n X_i \sim \mathcal{N}\left(\mu, \frac{\sigma^2}{n}\right).$$
+
+---
+
+# Review of 120B
+
+##### One Sample $z$-test
+
+__Step 1__
+
+Suppose $X_1, \dots, X_n \overset{iid}\sim \mathcal{N}(\mu, \sigma^2)$, with $\sigma^2$ known.
+
+We wish to test the hypothesis
+
+$$\begin{aligned}
+&H_0: \mu = \mu_0\\
+&H_1: \mu > \mu_0.
+\end{aligned}$$
+
+---
+
+# Review of 120B
+
+##### One Sample $z$-test
+
+__Step 2__
+
+We will test $H_0$ with test statistic $T(X) = \frac{\overline X - \mu_0}{\sigma}$.  
+
+"True" Distribution: $~~~\overline X \sim \mathcal{N}(\mu, \sigma^2 / n)$
+
+Null Distribution: $~~~\overline X \overset{H_0}\sim \mathcal{N}(\mu_0, \sigma^2 / n)$
+
+--
+<br>
+
+***
+
+__Note:__  A statistic based on $~~~\overline{X}$ is a natural choice, and is also theoretically motivated, since it is
+
+- The _minimum variance unbiased linear estimator_ for $\mu$
+
+- The _Maximum Likelihood Estimator_ for $\mu$
+
+- More on this later...
+
+---
+
+# Review of 120B
+
+__Step 3__ Check model assumptions.
+
+```{r, echo = FALSE, fig.height=3.75, fig.align='center'}
+knitr::include_graphics("understanding_qqplots.png")
+```
+
+---
+
+# Review of 120B
+
+__Step 4__ Compute reference distribution.
+
+- Reference Distribution: $T(X) \overset{H_0}\sim \mathcal{N}(0, 1)$
+
+```{r, echo = FALSE, fig.height=5}
+t_seq <- seq(-4, 4, 0.01)
+t_pdf <- dt(t_seq, df = n - 1)
+curve(dt(x, df = n - 1), from = -4, to = 4, ylab = "t Density", xlab = "x",
+      main = "Reference Distribution (assuming the null is true)")
+```
+
+---
+
+# Review of 120B
+
+__Step 5__ Make conclusion.
+
+- $P = 1 - \Phi\left(\frac{\overline X - \mu_0}{\sigma}\right)$
+
+```{r, echo = FALSE,  fig.height=5}
+t_seq <- seq(-4, 4, 0.01)
+t_pdf <- dt(t_seq, df = n - 1)
+curve(dt(x, df = n - 1), from = -4, to = 4, ylab = "Reference Density", xlab = "x",
+      main = "Two-sided test")
+polygon(c(t_seq[t_seq <= T_stat], T_stat), c(t_pdf[t_seq <= T_stat], 0), col=rgb(0, 0, 1, 0.6))
+polygon(c(t_seq[t_seq >= -T_stat], -T_stat), c(t_pdf[t_seq >= -T_stat], 0), col=rgb(0, 0, 1, 0.6))
+polygon(c(t_seq[t_seq <= qt(0.025, df = n - 1)], qt(0.025, df = n - 1)), c(t_pdf[t_seq <= qt(0.025, df = n - 1)], 0), col=rgb(1, 0, 0, 0.6))
+polygon(c(t_seq[t_seq >= -qt(0.025, df = n - 1)], -qt(0.025, df = n - 1)), c(t_pdf[t_seq >= -qt(0.025, df = n - 1)], 0), col=rgb(1, 0, 0, 0.6))
+legend("topright", col = c("blue", "red"), legend = c("P-value", "Rejection Region"), lty = 1)
+```
+
+---
+
+# Review of 120B
+
+##### Hypothesis Testing Terminology
+
+- __Type I Error__: $\alpha = P(\text{Reject } H_0 | H_0 \text{ is True})$
+
+- __Type II Error__: $\beta = P(\text{Fail to reject } H_0 | H_0 \text{ is False})$
+
+- __Power__: $1 - \beta = P(\text{Reject } H_0 | H_0 \text{ is False})$
+
+__Remarks__
+
+- In the NHST framework, $\alpha$ is selected by the researcher.
+
+- Power is determined by the choice of $\alpha$, as well as the sample size and the size of the effect being tested.
+
+---
+
+# Review of 120B
+
+##### Deriving the one-sample t-test
+
+What about the case when $\sigma^2$ is unknown?
+
+---
+
+# Review of 120B
+
+#### Example: One-sample t-test
+
+```{r, fig.align = "center", fig.height=4}
+set.seed(12)
+n <- 20
+mu <- 0
+sigma <- 0.5
+x <- rnorm(n, mu, sigma)
+hist(x, breaks = 20)
+```
+
+---
+
+# Review of 120B
+
+#### Example: One-sample t-test
+
+```{r}
+x_bar <- sum(x) / n
+s <- sqrt(sum((x - x_bar)^2) / (n - 1))
+print(x_bar)
+print(s)
+```
+
+```{r}
+test_stat <- (x_bar - 0) / (s / sqrt(n))
+print(test_stat)
+```
+
+---
+
+# Review of 120B
+
+##### Example: One-sample t-test
+
+```{r}
+pnorm(test_stat)
+```
+
+```{r}
+pt(test_stat, df = n - 1)
+```
+
+- We see that the $t$-test gives a larger $P$-value than what one would get from the normal distribution.
+
+- If one incorrectly applies a $z$-test instead of a $t$-test, the Type I error will be inflated, especially for small sample sizes.
+
+
+---
+
+# Review of 120B
+
+##### Likelihood Ratio Test
+
+---
+
+# Review of 120B
+
+##### Likelihood Ratio Test
+
+```{r}
+set.seed(1234)
+n <- 20
+mu <- 0.9
+sigma <- 0.5
+x <- rnorm(n, mu, sigma)
+```
+
+```{r}
+lik <- function(mu, sigma = 1) {
+  (2 * pi * sigma^2)^(-n / 2) * exp(- 1 / (2 * sigma^2) * sum((x - mu)^2))
+}
+mu_seq <- seq(0, 2, 0.01)
+lik_vals <- sapply(X = mu_seq, FUN = lik)
+```
+
+
+---
+
+# Review of 120B
+
+##### Likelihood Ratio Test
+
+```{r, fig.align="center", fig.height=5}
+plot(mu_seq, lik_vals, ty = "l", ylab = "Likelihood", xlab = "mu", 
+     main = "Likelihood for Simulated Data")
+```
+
+---
+
+# Review of 120B
+
+##### Likelihood Ratio Test
+
+Suppose we want to test $H_0: \mu = 1$ with the LRT.
+
+```{r, fig.height=5, fig.align="center"}
+plot(mu_seq, lik_vals, ty = "l", ylab = "Likelihood", xlab = "mu", 
+     main = "Likelihood for Simulated Data")
+abline(v = 1, col = "blue")
+abline(v = mean(x), col = "red")
+```
+
+---
+
+# Review of 120B
+
+##### Likelihood Ratio Test
+
+Suppose we want to test $H_0: \mu = 1$ using the LRT.
+
+```{r}
+set.seed(1234)
+n <- 20
+mu <- 0.9
+sigma <- 0.5
+x <- rnorm(n, mu, sigma)
+
+mu_0 <- 1
+s_0 <- sqrt(1 / n * sum((x - mu_0)^2))
+mu_hat <- mean(x)
+s <- sqrt(1 / (n - 1) * sum((x - mu_hat)^2))
+```
+
+```{r}
+F_stat <- n * (mu_hat - mu_0)^2 / s^2
+P_val <- pf(F_stat, df1 = 1, df2 = n - 1, lower.tail = FALSE)
+P_val
+```
+
+---
+
+# Review of 120B
+
+##### Likelihood Ratio Test
+
+```{r}
+t.test(x = x, mu = 1)
+```
+
+```{r}
+T_stat <- (mu_hat - mu_0) / sqrt(s^2 / n)
+2 * pt(T_stat, df = n - 1, lower.tail = T)
+```
+
+---
+
+# Review of 120B
+
+##### Likelihood Ratio Test
+
+```{r, echo=FALSE}
+f <- seq(0, 20, 0.01)
+f_pdf <- df(f, df1 = 1, df2 = n - 1)
+curve(df(x, df1 = 1, df2 = n - 1), from = 0, to = 10, ylab = "F Density", xlab = "x", main = "F Test")
+polygon(c(f[f >= F_stat], F_stat), c(f_pdf[f >= F_stat], 0), col="blue")
+```
+
+---
+
+# Review of 120B
+
+##### Likelihood Ratio Test
+
+```{r, echo=FALSE}
+t_seq <- seq(-4, 4, 0.01)
+t_pdf <- dt(t_seq, df = n - 1)
+curve(dt(x, df = n - 1), from = -4, to = 4, ylab = "t Density", xlab = "x",
+      main = "Two-sided t-test")
+polygon(c(t_seq[t_seq <= T_stat], T_stat), c(t_pdf[t_seq <= T_stat], 0), col=rgb(0, 0, 1, 0.6))
+polygon(c(t_seq[t_seq >= -T_stat], -T_stat), c(t_pdf[t_seq >= -T_stat], 0), col=rgb(0, 0, 1, 0.6))
+legend("topright", col = c("blue"), legend = c("P-value"), lty = 1)
+```
+
+---
+
+# Review of 120B
+
+##### Likelihood Ratio Test
+
+
+```{r, echo=FALSE}
+t_seq <- seq(-4, 4, 0.01)
+t_pdf <- dt(t_seq, df = n - 1)
+curve(dt(x, df = n - 1), from = -4, to = 4, ylab = "t Density", xlab = "x",
+      main = "Two-sided t-test")
+polygon(c(t_seq[t_seq <= T_stat], T_stat), c(t_pdf[t_seq <= T_stat], 0), col=rgb(0, 0, 1, 0.6))
+polygon(c(t_seq[t_seq >= -T_stat], -T_stat), c(t_pdf[t_seq >= -T_stat], 0), col=rgb(0, 0, 1, 0.6))
+polygon(c(t_seq[t_seq <= qt(0.025, df = n - 1)], qt(0.025, df = n - 1)), c(t_pdf[t_seq <= qt(0.025, df = n - 1)], 0), col=rgb(1, 0, 0, 0.6))
+polygon(c(t_seq[t_seq >= -qt(0.025, df = n - 1)], -qt(0.025, df = n - 1)), c(t_pdf[t_seq >= -qt(0.025, df = n - 1)], 0), col=rgb(1, 0, 0, 0.6))
+legend("topright", col = c("blue", "red"), legend = c("P-value", "Rejection Region"), lty = 1)
+```
+
+---
+
+# Review of 120B
+
+##### 
