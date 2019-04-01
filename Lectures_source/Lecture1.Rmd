@@ -42,35 +42,37 @@ ggplot(data.frame(y = y, x = seq(0.1, 1, length.out = 100))) +
 
 # STAT 120C Course Info
 
+### Logistics
+
 - Email: dpluta@uci.edu
 - Website: https://github.com/dspluta/STAT120C
 - Class Times: MWF 10 - 10:50am
 - Room: ICS 174
-- Office Hours: M 11:30am - 12:3pm; Th 2 - 3pm in DBH ----
+- Office Hours: M 11:30am - 12:30pm; Th 2 - 3pm in DBH ----
 - TA Office Hours: W & Th 11am - 12pm in DBH 2013
 - Discussion: MSTB 124
 - Discussion Hours: W 5 - 5:50pm; 6 - 6:50pm
 
----
+### Materials
 
-# STAT 120C Course Info
+- __Text__: __Mathematical Statistics and Data Analysis__, 3rd Edition. John Rice. ISBN: 9788131519547.
 
-- __Text__: _Mathematical Statistics and Data Analysis_, 3rd Edition. John Rice. ISBN: 9788131519547.
-
-- __Computing__: Many examples and problems will be given in `R`, which is available at http://www.r-project.org.  I also recommend using the development environment RStudio: https://www.rstudio.com/.
+- __Computing__: Many examples and problems will be given in `R`, which is available at http://www.r-project.org.  I also recommend using the development environment RStudio: https://www.rstudio.com/.  Please download and install `R` and RStudio before the next class meeting.
 
 
 ---
 
 # STAT 120C Course Info
 
-##### Grading
+### Grading
 
 - 30%: Eight (8) homework assignments
 - 5%: Two (2) in-class quizzes
 - 30%: Midterm Exam (Week 5)
 - 35%: Final Exam (June 10th, 10:30am - 12:30pm)
 - __Homework__ will be assigned on Monday and __due the following Monday by 5pm__ in the _STAT 120C Pluta_ dropbox located near DBH 2013.
+
+### Policies
 
 - Late homework will not be accepted!
 
@@ -86,13 +88,173 @@ ggplot(data.frame(y = y, x = seq(0.1, 1, length.out = 100))) +
 
 # Week 1
 
-##### Review of 120 B
+### Review of 120 B
 
-- Sample mean and variance of normal distribution
+- Review Distributions: Normal, t, chi-squared, F
 
 - NHST, reference distributions, rejection regions
 
 - Equivalence of t-test and Likelihood Ratio Test
+
+---
+
+# Review of 120B
+
+### Distributions
+
+- We will mainly focus on continuous distributions in this course.
+
+- The __cumulative density function (cdf)__ of a random variable $X$ is denoted $F(x)$, and is defined as the probability that $X < x$.
+
+$$F(x) = P(X < x)$$
+
+- The __probability density function (pdf)__ is denoted $f(x)$, and is defined as the rate of change of the cumulative probability at $x$, 
+
+$$f(x) = F^{\prime}(x).$$
+
+- The __support__ of a random variable $X$ is the set of all values for which $f(x) \neq 0$
+
+$$\text{Supp}(X) = \{x: f(x) \neq 0\}.$$
+
+---
+
+# Review of 120B
+
+### Normal Distribution: PDF
+
+The probability density function of $X \sim \mathcal{N}(\mu, \sigma^2)$ is
+
+$$f(x) = \frac{1}{\sqrt{2\pi\sigma^2}}\exp\left\{-\frac{(x - \mu)^2}{2\sigma^2}\right\}$$
+
+```{r, fig.align='center', fig.height=4, echo = FALSE}
+x <- curve(dnorm(x, mean = 0, sd = 0.5), 
+           from = -3, to = 3, ylab = "Density", 
+           col = "blue", main = "PDF of N(0, sigma^2)")
+curve(dnorm(x, mean = 0, sd = 2), add = T, col = "red")
+curve(dnorm(x, mean = 0, sd = 1), add = T)
+legend("topright", legend = c("sigma = 0.5", "sigma = 1", "sigma = 2"), 
+       col = c("blue", "black", "red"), lty = 1)
+```
+
+---
+
+# Review of 120B
+
+### Sums of Normally Distributed Variables
+
+Suppose $X_1 \sim \mathcal{N}(\mu_1, \sigma^2_1), X_2 \sim \mathcal{N}(\mu_2, \sigma^2_2)$, and let $a, b$ be real constants.
+
+1. $aX_1 + bX_2 \sim \mathcal{N}(a\mu_1 + b \mu_2, a^2\sigma^2_1 + b^2\sigma^2_2)$.
+
+2. In particular, for $X_i \overset{iid}\sim \mathcal{N}(\mu, \sigma^2), i = 1, \dots, n$, we have 
+$$\overline{X} := \frac{1}{n} \sum_{i = 1}^n X_i \sim \mathcal{N}\left(\mu, \frac{\sigma^2}{n}\right).$$
+
+---
+
+# Review of 120B
+
+### $\chi^2$ Distribution
+
+$X \sim \chi^2_n$ has pdf
+
+$$f(x) = \frac{1}{2^{n / 2}\Gamma(n / 2)} x^{n / 2 - 1}e^{-x / 2}.$$
+
+The parameter $n$ is the _degrees of freedom_ of the distribution.
+
+```{r, echo = FALSE, fig.height=4}
+x <- curve(dchisq(x, df = 1), 
+           from = 0, to = 5, ylab = "Density", 
+           col = "blue", main = "PDF of Chi-sq")
+curve(dchisq(x, df = 3), 
+           from = 0, to = 5, ylab = "Density", 
+           col = "green", add = T)
+curve(dchisq(x, df = 5), 
+           from = 0, to = 5, ylab = "Density", 
+           col = "red", add = T)
+legend("topright", legend = c("df = 1", "df = 4", "df = 9"), 
+       col = c("blue", "green", "red"), lty = 1)
+```
+
+---
+
+# Review of 120B
+
+### $\chi^2$ Distribution
+
+The following is a key property of the $\chi^2$ distribution that we will use repeatedly throughout the course:
+
+.full-width[.content-box-green[For $Z_1, \dots, Z_n \overset{iid}\sim N(0, 1)$, 
+$$\sum_{i = 1}^n Z_i^2 \sim \chi^2_n$$.]]
+
+---
+
+# Review of 120B
+
+### $t$ Distribution
+
+We will define the $t$ distribution as a combination of a standard normal $Z \sim N(0, 1)$, and $V \sim \chi^2_v$:
+
+$$T = \frac{Z}{\sqrt{V / v}} \sim t(v),$$
+
+where $v$ is the degrees of freedom of the distribution.
+
+---
+
+# Review of 120B
+
+### $t$ Distribution
+
+```{r, echo = FALSE}
+x <- curve(dnorm(x, 0, 1), from = -3.5, to = 3.5, ylab = "Density",
+           col = "black", main = "PDF of t")
+curve(dt(x, df = 1), 
+         from = -3.5, to = 3.5, add = T, col = "blue")
+curve(dt(x, df = 3), 
+           from = -3.5, to = 3.5, ylab = "Density", 
+           col = "green", add = T)
+curve(dt(x, df = 9), 
+           from = -3.5, to = 3.5, ylab = "Density", 
+           col = "red", add = T)
+legend("topright", legend = c("Normal", "df = 1", "df = 3", "df = 9"), 
+       col = c("black", "blue", "green", "red"), lty = 1)
+```
+
+---
+
+# Review of 120B
+
+### $F$ Distribution
+
+We will encounter the $F$ distribution frequently throughout the course as well.
+
+Let $U \sim \chi^2_u$ and $V \sim \chi^2_v$, with $U$ and $V$ independent.  Then
+
+$$X = \frac{U / u}{V / v} \sim F_{u, v},$$
+
+where $u$ and $v$ are the degrees of freedom of the distribution.
+
+---
+
+# Review of 120B
+
+### $F$ Distribution
+
+```{r, echo = FALSE}
+x <- curve(df(x, df1 = 100, df2 = 100), 
+           from = 0, to = 5, ylab = "Density", 
+           col = "black", main = "PDF of F(df1, df2)")
+curve(df(x, df1 = 5, df2 = 2), 
+           from = 0, to = 5, ylab = "Density", 
+           col = "green", add = T)
+curve(df(x, df1 = 10, df2 = 1), 
+           from = 0, to = 5, ylab = "Density", 
+           col = "red", add = T)
+curve(df(x, df1 = 1, df2 = 1), 
+           from = 0, to = 5, ylab = "Density", 
+           col = "blue", add = T)
+legend("topright", legend = c("df1 = 1, df2 = 1", "df1 = 5, df2 = 2", "df1 = 10, df2 = 1", "df1 = 100, df2 = 100"), 
+       col = c("blue", "green", "red", "black"), lty = 1)
+```
 
 ---
 
@@ -105,6 +267,8 @@ ggplot(data.frame(y = y, x = seq(0.1, 1, length.out = 100))) +
 - __Estimation__: Estimate the value of some unknown quantity, and characterize the uncertainty in the estimate.
 
 - __Prediction__: Predict the values of new observations from existing observations.
+
+We will primarily focus on a review of hypothesis testing this week.
 
 ---
 
@@ -187,46 +351,6 @@ legend("topright", col = c("blue"), legend = c("P-value"), lty = 1)
 
 # Review of 120B
 
-##### Normal Distribution: PDF
-
-The probability density function of $X \sim \mathcal{N}(\mu, \sigma^2)$ is
-
-$$f(x) = \frac{1}{\sqrt{2\pi\sigma^2}}\exp\left\{-\frac{(x - \mu)^2}{2\sigma^2}\right\}$$
-
----
-# Review of 120B
-
-##### Normal Distribution: PDF
-
-
-```{r, fig.align='center', fig.height=4}
-x <- curve(dnorm(x, mean = 0, sd = 0.5), 
-           from = -3, to = 3, ylab = "Density", 
-           col = "blue", main = "PDF of N(0, sigma^2)")
-curve(dnorm(x, mean = 0, sd = 2), add = T, col = "red")
-curve(dnorm(x, mean = 0, sd = 1), add = T)
-legend("topright", legend = c("sigma = 0.5", "sigma = 1", "sigma = 2"), 
-       col = c("blue", "black", "red"), lty = 1)
-```
-
-
----
-
-# Review of 120B
-
-##### Sums of Normally Distributed Variables
-
-Suppose $X_1 \sim \mathcal{N}(\mu_1, \sigma^2_1), X_2 \sim \mathcal{N}(\mu_2, \sigma^2_2)$, and let $a, b$ be real constants.
-
-1. $aX_1 + bX_2 \sim \mathcal{N}(a\mu_1 + b \mu_2, a^2\sigma^2_1 + b^2\sigma^2_2)$.
-
-2. In particular, for $X_i \overset{iid}\sim \mathcal{N}(\mu, \sigma^2), i = 1, \dots, n$, we have 
-$$\overline{X} := \frac{1}{n} \sum_{i = 1}^n X_i \sim \mathcal{N}\left(\mu, \frac{\sigma^2}{n}\right).$$
-
----
-
-# Review of 120B
-
 ##### One Sample $z$-test
 
 __Step 1__
@@ -274,7 +398,7 @@ __Note:__  A statistic based on $~~~\overline{X}$ is a natural choice, and is al
 __Step 3__ Check model assumptions.
 
 ```{r, echo = FALSE, fig.height=3.75, fig.align='center'}
-knitr::include_graphics("understanding_qqplots.png")
+knitr::include_graphics("img/understanding_qqplots.png")
 ```
 
 ---
@@ -297,8 +421,6 @@ curve(dt(x, df = n - 1), from = -4, to = 4, ylab = "t Density", xlab = "x",
 # Review of 120B
 
 __Step 5__ Make conclusion.
-
-- $P = 1 - \Phi\left(\frac{\overline X - \mu_0}{\sigma}\right)$
 
 ```{r, echo = FALSE,  fig.height=5}
 t_seq <- seq(-4, 4, 0.01)
@@ -334,9 +456,52 @@ __Remarks__
 
 # Review of 120B
 
-##### Deriving the one-sample t-test
+##### One-sample z-test
 
-What about the case when $\sigma^2$ is unknown?
+- Suppose $X_1, \dots, X_n \overset{iid}\sim \mathcal{N}(\mu, \sigma^2)$.  We wish to test $H_0: \mu = \mu_0$.  Assume $\sigma^2$ is known.
+
+- Since $\bar X$ is an unbiased sufficient statistic for $\mu$, we can use this estimator to construct our test statistic.
+
+- We want to standardize the statistic to make it easy to compute the $P$-value.
+
+- $\bar X \sim \mathcal{N}(\mu, \sigma^2)$, so 
+
+$$Z = \frac{\overline X - \mu_0}{\sigma / \sqrt{n}} \overset{H_0}\sim \mathcal{N}(0, 1).$$
+
+---
+
+# Review of 120B
+
+##### One-sample z-test
+
+- Suppose $X_1, \dots, X_n \overset{iid}\sim \mathcal{N}(\mu, \sigma^2)$.  We wish to test $H_0: \mu = \mu_0$.  Assume $\sigma^2$ is known.
+
+- We can again use $\overline X$ to construct our test statistic, but we must now also estimate $\sigma^2$.
+
+- Use the sample variance estimator, which is unbiased for $\sigma^2$:
+
+$$s^2 = \frac{1}{n - 1}\sum_{i = 1}^n (X_i - \overline X)^2.$$
+
+- Now consider test statistic $T = \frac{\bar x - \mu_0}{s / \sqrt{n}}$.  What is the reference distribution?
+
+---
+
+# Review of 120B
+
+##### One-sample z-test (cont'd)
+
+- What is the reference distribution of $T = \frac{\bar x - \mu_0}{s / \sqrt{n}}$?
+
+- Recall that $\frac{(n - 1)s^2}{\sigma^2} \sim \chi^2_{n - 1}$.
+
+- We can rewrite $T$ as
+
+$$T = \frac{Z}{\sqrt{V / v}},$$
+
+where $Z = \frac{(\overline X - \mu_0)}{\sigma}$ and $V = \frac{(n - 1) s^2}{\sigma^2}$.
+
+- Thus, $T \overset{H_0}\sim \chi^2_{n - 1}$.
+
 
 ---
 
