@@ -2,7 +2,7 @@
 title: "STAT 120 C"
 subtitle: "Introduction to Probability and Statistics III"
 author: "Dustin Pluta"
-date: "2019/04/01"
+date: "2019/04/08"
 output:
   xaringan::moon_reader:
     css: [default, metropolis-fonts, "my-theme.css"]
@@ -159,7 +159,7 @@ t.test(A, B, var.equal = TRUE)
 
 #### Example A
 
-```{r, echo = FALSE, fig.align='center', fig.width=6, fig.height=4, dpi = 320}
+```{r, echo = FALSE, fig.align='center', fig.width=7, fig.height=5}
 t_seq <- seq(-4, 4, 0.01)
 t_pdf <- dt(t_seq, df = m + n - 2)
 curve(dt(x, df = n - 1), from = -4, to = 4, ylab = "t Density", xlab = "x",
