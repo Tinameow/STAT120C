@@ -19,6 +19,7 @@ options(htmltools.dir.version = FALSE)
 knitr::opts_chunk$set(echo = FALSE, fig.align="center")
 library(ggplot2)
 library(dplyr)
+library(readr)
 ```
 
 # Week 2
@@ -175,12 +176,46 @@ legend("topright", col = c("blue"), legend = c("P-value"), lty = 1)
 
 # One-way ANOVA
 
+```{r}
+I <- 3
+J <- 5
+mu <- 1
+alpha1 <- -0.5
+alpha2 <- 2
+alpha3 <- 1
+sigma <- 0.75
+```
+
+```{r}
+set.seed(12345)
+Y1 <- mu + alpha1 + rnorm(J, 0, sigma)
+Y2 <- mu + alpha2 + rnorm(J, 0, sigma)
+Y3 <- mu + alpha3 + rnorm(J, 0, sigma)
+```
+
+---
+
+# One-way ANOVA
+
+```{r}
+set.seed(12345)
+dat <- data.frame(grp = rep(c(1, 2, 3), each = J), Y = c(Y1, Y2, Y3))
+ggplot(dat) + 
+  geom_jitter(aes(x = factor(grp), y = Y, fill = factor(grp)), size = 3, pch = 21, color = "black", alpha = 0.75, width = 0.01) + 
+  theme(axis.text.x = element_blank()) + 
+  xlab("")
+```
+
+
+---
+
+# One-way ANOVA
+
 ### Diet and Longevity Study (12.5.33, Rice)
 
 It is hypothesized that animals on restricted calorie diets have longer lifespans on average.  
 A study by Weindruch et al. examined the effects of 6 different types of diets on lifespans 
 in female mice.
-
 
 ```{r}
 dat <- read.csv('dat/datasets/Chapter 12/diet-and-longevity.csv')
@@ -212,7 +247,8 @@ $$\begin{aligned}
 ### Diet and Longevity Study (12.5.33, Rice)
 
 ```{r}
-dat_summary <- dat %>% group_by(DIET) %>% summarize(mean = mean(LIFETIME), sd = sd(LIFETIME))
+dat_summary <- dat %>% group_by(DIET) %>% 
+  summarize(mean = mean(LIFETIME), sd = sd(LIFETIME))
 knitr::kable(dat_summary, format = 'html')
 ```
 
@@ -296,8 +332,51 @@ fit <- lm(LIFETIME ~ DIET, data = dat)
 anova(fit)
 ```
 
+---
+
+# One-way ANOVA
+
+### Linseed Experiment
+
+```{r}
+dat <- read_csv("dat/datasets/Chapter 12/linseed.csv")
+dat %>% group_by(Variety) %>% summarize(n = n(), mean = mean(Yield), sd = sd(Yield))
+```
+
+---
+
+# One-way ANOVA
+
+### Linseed Experiment
+
+```{r}
+ggplot(dat) + 
+  geom_boxplot(aes(x = Variety, y = Yield, fill = Variety))
+```
 
 
+---
+
+# One-way ANOVA
+
+### Linseed Experiment
+
+```{r}
+ggplot(dat) + 
+  geom_boxplot(aes(x = Variety, y = Yield, fill = Variety), alpha = 0.5) + 
+  geom_point(aes(x = Variety, y = Yield, fill = Variety), pch = 23, size = 3)
+```
+
+---
+
+# One-way ANOVA
+
+### Linseed Experiment
+
+```{r, echo = TRUE}
+fit <- lm(Yield ~ Variety, data = dat)
+anova(fit)
+```
 
 
 
