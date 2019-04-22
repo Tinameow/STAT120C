@@ -1,0 +1,167 @@
+---
+title: "STAT 120 C"
+subtitle: "Introduction to Probability and Statistics III"
+author: "Dustin Pluta"
+date: "2019/04/08"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis-fonts, "my-theme.css"]
+    lib_dir: libs
+    mathjax: "https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_HTMLorMML"
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(echo = FALSE, fig.align="center")
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(tidyr)
+```
+
+# Weeks 3 & 4
+
+- Two-way ANOVA
+
+- Multiple Testing
+
+---
+
+```{r}
+dat_wide <- read_csv("dat/datasets/Chapter 12/LHMale.csv")
+dat_wide
+```
+
+```{r}
+dat <- dat_wide %>% gather(value = "LH", key = "Light", -Dose)
+dat
+```
+
+---
+
+```{r}
+dat_summary <- dat %>% group_by(Dose, Light) %>% summarize(LH_mean = mean(LH), LH_sd = sd(LH) / n(), upr = LH_mean + 2 * LH_sd, lwr = LH_mean - 2 * LH_sd)
+dat_summary
+```
+
+---
+
+```{r}
+ggplot(dat) + 
+  geom_boxplot(aes(x = factor(Dose), y = LH, fill = factor(Dose))) + 
+  ggtitle("Marginal Mean LH across Dose")
+```
+
+---
+
+```{r}
+ggplot(dat) + 
+  geom_boxplot(aes(x = Light, y = LH, fill = Light)) + 
+  ggtitle("Marginal Mean LH across Light Type")
+```
+
+
+---
+
+```{r}
+ggplot(dat) + 
+  geom_boxplot(aes(x = factor(Dose), y = LH, fill = Light), alpha = 0.5) +
+  ggtitle("LH Mean by Light-Dose Combination") +
+  xlab("Dose")
+```
+
+
+---
+
+```{r}
+ggplot(dat_summary) + 
+  geom_segment(aes(x = factor(Dose), xend = factor(Dose), y = lwr, yend = upr, color = Light), size = 2, alpha = 0.75) +
+  geom_line(aes(x = factor(Dose), y = LH_mean, group = Light, linetype = Light, color = Light), size = 2) + 
+  geom_point(aes(x = factor(Dose), y = LH_mean, group = Light, fill = Light), size = 2.5, pch = 23) +
+  ggtitle("Interaction Plot for LH Data") + 
+  xlab("Dose")
+```
+
+---
+
+```{r}
+fit_Dose <- lm(LH ~ factor(Dose), data = dat)
+anova(fit_Dose)
+```
+
+---
+
+```{r}
+fit_Light <- lm(LH ~ Light, data = dat)
+anova(fit_Light)
+```
+
+---
+
+```{r}
+fit_no_int <- lm(LH ~ factor(Dose) + Light, data = dat)
+anova(fit_no_int)
+```
+
+---
+
+```{r}
+fit_int <- lm(LH ~ factor(Dose) + Light + Light:factor(Dose), data = dat)
+anova(fit_int)
+```
+
+---
+
+```{r}
+plot(fit_int$fitted, fit_int$residuals, ylab = "Residuals", xlab = "Fitted")
+```
+
+---
+
+```{r}
+qqnorm(fit_int$residuals)
+qqline(fit_int$residuals)
+```
+
+---
+
+```{r}
+dat$LH_log <- log(dat$LH)
+```
+
+---
+
+```{r}
+dat_summary <- dat %>% group_by(Dose, Light) %>% summarize(LH_mean = mean(LH_log), LH_sd = sd(LH_log) / n(), upr = LH_mean + 2 * LH_sd, lwr = LH_mean - 2 * LH_sd)
+ggplot(dat_summary) + 
+  geom_segment(aes(x = factor(Dose), xend = factor(Dose), y = lwr, yend = upr, color = Light), size = 2, alpha = 0.75) +
+  geom_line(aes(x = factor(Dose), y = LH_mean, group = Light, linetype = Light, color = Light), size = 2) + 
+  geom_point(aes(x = factor(Dose), y = LH_mean, group = Light, fill = Light), size = 2.5, pch = 23) +
+  ggtitle("Interaction Plot for LH Data") + 
+  xlab("Dose")
+```
+
+---
+
+```{r}
+fit_int_log <- lm(LH_log ~ factor(Dose) + Light + Light:factor(Dose), data = dat)
+anova(fit_int_log)
+```
+
+---
+
+```{r}
+plot(fit_int_log$fitted, fit_int_log$residuals, ylab = "Residuals", xlab = "Fitted")
+```
+
+---
+
+```{r}
+qqnorm(fit_int_log$residuals)
+qqline(fit_int_log$residuals)
+```
+
