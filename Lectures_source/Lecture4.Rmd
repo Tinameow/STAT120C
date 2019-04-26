@@ -1,0 +1,306 @@
+---
+title: "STAT 120 C"
+subtitle: "Introduction to Probability and Statistics III"
+author: "Dustin Pluta"
+date: "2019/04/08"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis-fonts, "my-theme.css"]
+    lib_dir: libs
+    mathjax: "https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_HTMLorMML"
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(echo = TRUE, fig.align="center")
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(tidyr)
+```
+
+# Weeks 4 & 5
+
+- Confidence Intervals
+
+- Multiple Testing
+
+---
+
+# Confidence Intervals
+
+- __Definition__ A $(1 - \alpha)100\%$ __confidence interval__ for scalar parameter $\theta$ 
+constructed from a sample $X$ is an interval $(L(X), U(X)) \subset (-\infty, \infty)$ such that the probability of such an interval containing $\theta$ is $(1 - \alpha)100\%$.
+
+- __Definition__ We refer to $(1 - \alpha)100\%$ as the __coverage__ or __coverage probability__ of the confidence interval.
+
+- The _coverage_ of the interval is the expected proportion of times that the CI will contain the true value $\theta$.  This means that the $(1 - \alpha)100\%$ confidence level is a probability statement with respect to the _distribution of confidence intervals_ constructed this way.
+
+---
+
+# Confidence Intervals
+
+- __Note__ In the frequentist framework, we assume paramters are _fixed_, not random.  
+
+- Consequently, for a given sample, the corresponding CI either contains $\theta$, or it does not.  
+
+- In other words, once the sample is drawn, there is no more randomness, 
+and we cannot make probability statements about the specific CI we constructed.
+
+
+---
+
+# Confidence Intervals
+
+### Example: One-sample Normal, unknown mean and variance
+
+Consider an iid sample $X_i \sim N(\mu, \sigma^2)$.  We wish to construct a 95\% confidence interval for $\mu$.
+
+For the one-sample t-test, we use test statistic
+
+$$T = \frac{\bar X - \mu_0}{s / \sqrt{n}} \overset{H_0}\sim t(n - 1).$$
+
+
+---
+
+# Confidence Intervals
+
+### Example: One-sample Normal, unknown mean and variance
+
+To form a 95% percent confidence interval for $\mu$, we invert this hypothesis test.  
+
+Note that if we replace $\mu_0$ with the true parameter value $\mu$, $T \sim t(n - 1)$.  Let $t_{1 - \alpha / 2}(n - 1)$ be the $(1 - \alpha / 2)$ percentile of $t$.
+
+$$\begin{aligned}
+&P(t_{1 - \alpha / 2}(n - 1) < T < t_{1 - \alpha / 2}) = 1 - \alpha\\
+&P(t_{1 - \alpha / 2}(n - 1) < \frac{\bar X - \mu}{s / \sqrt{n}} < t_{1 - \alpha / 2}) = 1 - \alpha\\
+&P\left(\bar X - \frac{s}{\sqrt{n}} t_{1 - \alpha / 2}(n - 1) < \mu < \bar X + \frac{s}{\sqrt{n}} t_{1 - \alpha / 2}(n - 1)\right) = 1 - \alpha\\
+\end{aligned}$$
+
+---
+
+# Confidence Intervals
+
+### Example: One-sample Normal, unknown mean and variance
+
+```{r, echo=TRUE}
+set.seed(123)
+n <- 20
+mu <- 2
+sigma <- 1
+x <- rnorm(n, mu, sigma)
+x_bar <- mean(x)
+s <- sd(x)
+```
+
+---
+
+# Confidence Intervals
+
+### Example: One-sample Normal, unknown mean and variance
+
+
+```{r, echo=FALSE}
+hist(x)
+abline(v = x_bar, col = "red")
+```
+
+
+---
+
+# Confidence Intervals
+
+### Example: One-sample Normal
+
+```{r, echo=TRUE}
+alpha <- 0.05
+lwr <- x_bar - s / sqrt(n) * pt(1 - alpha / 2, n - 1)
+upr <- x_bar + s / sqrt(n) * pt(1 - alpha / 2, n - 1)
+```
+
+```{r}
+cat(lwr, upr)
+```
+
+We see this confidence interval contains the true value $\mu = 2$.
+
+- What happens if we sample $X$ many times and form a confidence interval for each?
+
+---
+
+# Confidence Intervals
+
+### Example: One-sample Normal
+
+```{r, echo=TRUE}
+conf_int_simulation <- function(n_sims, n, mu, sigma, alpha = 0.05) {
+  results <- data.frame(lwr = rep(NA, n_sims), upr = rep(NA, n_sims))
+  
+  for (k in 1:n_sims) {
+    x <- rnorm(n, mu, sigma)
+    x_bar <- mean(x)
+    s <- sd(x)
+    lwr <- x_bar - s / sqrt(n) * qt(1 - alpha / 2, n - 1)
+    upr <- x_bar + s / sqrt(n) * qt(1 - alpha / 2, n - 1)
+    results[k, ] <- c(lwr, upr)
+  }
+  results$sim_index <- 1:nrow(results)
+  results$covers <- (mu > results$lwr) & (mu < results$upr)
+
+  return(results)
+}
+```
+
+---
+
+# Confidence Intervals
+
+```{r, echo=TRUE}
+set.seed(123)
+n_sims <- 100
+n <- 30
+mu <- 2
+sigma <- 1
+alpha <- 0.05
+
+sim_results <- conf_int_simulation(n_sims, n, mu, sigma, alpha)
+head(sim_results)
+```
+
+
+```{r, echo=TRUE}
+mean(sim_results$covers)
+```
+
+---
+
+# Confidence Intervals
+
+
+```{r, echo = FALSE}
+ggplot(sim_results) + 
+  geom_segment(aes(y = sim_index, yend = sim_index, x = lwr, xend = upr, color = covers), size = 1.25) + 
+  geom_segment(y = 0, yend = n_sims, x = mu, xend = mu, size = 1.25, linetype = 2)
+```
+
+---
+
+# Confidence Intervals
+
+### Example: One-sample Normal
+
+```{r, echo=TRUE}
+set.seed(123)
+n_sims <- 10000
+n <- 30
+mu <- 2
+sigma <- 1
+alpha <- 0.05
+
+sim_results <- conf_int_simulation(n_sims, n, mu, sigma, alpha)
+mean(sim_results$covers)
+```
+
+---
+
+# Confidence Intervals
+
+### Example: One-sample Normal, unknown mean and variance
+
+
+```{r, echo=FALSE}
+plot(cumsum(sim_results$covers) / 1:n_sims, ty = "l", xlab = "Coverage", ylab = "# of Simulations")
+abline(h = 1 - alpha)
+```
+
+---
+
+# Multiple Testing
+
+
+```{r}
+set.seed(123)
+n_sims <- 1000
+n <- 30
+mu1 <- 2
+mu2 <- 1
+sigma <- 1
+alpha <- 0.05
+```
+
+```{r, echo=FALSE}
+sim_results1 <- conf_int_simulation(n_sims, n, mu1, sigma, alpha)
+sim_results2 <- conf_int_simulation(n_sims, n, mu2, sigma, alpha)
+combined_results <- data.frame(covers1 = sim_results1$covers, covers2 = sim_results2$covers)
+combined_results$covers_all <- combined_results$covers1 & combined_results$covers2
+```
+
+```{r}
+mean(combined_results$covers_all)
+mean(sim_results1$covers)
+mean(sim_results2$covers)
+```
+
+
+---
+
+# Multiple Testing
+
+```{r}
+set.seed(123)
+n_sims <- 1000
+n <- 30
+mu1 <- 2
+mu2 <- 1
+mu3 <- 0
+sigma <- 1
+alpha <- 0.05
+```
+
+```{r, echo=FALSE}
+sim_results1 <- conf_int_simulation(n_sims, n, mu1, sigma, alpha)
+sim_results2 <- conf_int_simulation(n_sims, n, mu2, sigma, alpha)
+sim_results3 <- conf_int_simulation(n_sims, n, mu3, sigma, alpha)
+combined_results <- data.frame(covers1 = sim_results1$covers, covers2 = sim_results2$covers, covers3 = sim_results3$covers)
+combined_results$covers_all <- combined_results$covers1 & combined_results$covers2 & combined_results$covers3
+```
+
+```{r}
+mean(combined_results$covers_all)
+mean(sim_results2$covers)
+mean(sim_results2$covers)
+```
+
+---
+
+# Multiple Testing
+
+```{r}
+set.seed(123)
+n_sims <- 1000
+n <- 30
+mu1 <- 2
+mu2 <- 1
+mu3 <- 0
+sigma <- 1
+alpha <- 0.05
+```
+
+```{r, echo=FALSE}
+sim_results1 <- conf_int_simulation(n_sims, n, mu1, sigma, alpha)
+sim_results2 <- conf_int_simulation(n_sims, n, mu2, sigma, alpha)
+sim_results3 <- conf_int_simulation(n_sims, n, mu3, sigma, alpha)
+combined_results <- data.frame(covers1 = sim_results1$covers, covers2 = sim_results2$covers, covers3 = sim_results3$covers)
+combined_results$covers_all <- combined_results$covers1 & combined_results$covers2 & combined_results$covers3
+```
+
+```{r}
+mean(combined_results$covers_all)
+mean(sim_results2$covers)
+mean(sim_results2$covers)
+```
+
