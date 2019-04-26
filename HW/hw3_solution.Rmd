@@ -1,0 +1,390 @@
+---
+title: "HW3_solutions"
+author: "Dustin Pluta"
+date: "April 25, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
+```
+
+## Problem 1
+
+### b (i)
+
+```{r}
+#####
+#####  Set the random number generator so that we all get the same results
+#####
+
+set.seed(111)
+
+
+#####
+#####  Set the simulation parameters
+#####
+
+n_sims <- 5000				## The total number of simulations we intend to run
+n_grp <- c(30, 30, 30)			## The number of observations per group
+grp_means <- c(1, 1, 1)		## The true mean of the distribution each group is sampled from
+grp_var <- c(1, 1, 1)			## The true variance of each observation from each of the three groups		
+
+#####
+#####  Initialize the matrix that will hold the results of our tests 
+#####  (test statistics will be in column 1; corresponding p-values will be in column 2) 
+#####
+
+result <- matrix(NA, nrow = n_sims, ncol = 2)
+
+#####
+#####  Run the simulation n_sims times 
+#####
+for(i in 1:n_sims){
+	
+	## Sample the data for each group, depending upon the specified mean and variance
+	y <- rnorm(n = sum(n_grp), mean = rep(grp_means, times = n_grp), sd = rep(sqrt(grp_var), times = n_grp))
+	group <- rep(1:3, times = n_grp)
+	sim_data <- as.data.frame(cbind(group, y))
+		
+	## Fit the one-way ANOVA model, then extract the F-statistic and the p-value
+	fit <- aov(y ~ factor(group), data = sim_data)
+	F_stat <- summary(fit)[[1]][1, 4]
+	p_val <- summary(fit)[[1]][1, 5]
+	
+	##  Store the results of simulation loop i in row i of the results matrix
+	result[i, ] <- c(F_stat, p_val)
+}
+```
+
+```{r, echo=TRUE}
+#####
+#####  Calculate the observed type I error rate
+#####
+  
+n_reject <- sum(result[, 2] < .05 )	
+sim_type1_error <- n_reject / n_sims
+sim_type1_error	
+```
+
+```{r}
+#####
+#####  Plot the observed distribution of F-statistics vs. the theoretical distribution
+#####
+
+hist(result[, 1], xlab = "Simulated F-statistics", prob = T, ylim = c(0,1), breaks = 30)
+lines(seq(0, 10, by = .1), df(seq( 0, 10, by = .1), df1 = 3 - 1, df2 = sum(n_grp) - 3))
+```
+
+### b (ii)
+
+```{r}
+#####
+#####  Set the random number generator so that we all get the same results
+#####
+
+set.seed(111)
+
+
+#####
+#####  Set the simulation parameters
+#####
+
+n_sims <- 5000				## The total number of simulations we intend to run
+n_grp <- c(30, 30, 30)			## The number of observations per group
+grp_means <- c(1, 1, 1)		## The true mean of the distribution each group is sampled from
+grp_var <- c(1, 1, 1)			## The true variance of each observation from each of the three groups		
+
+#####
+#####  Initialize the matrix that will hold the results of our tests 
+#####  (test statistics will be in column 1; corresponding p-values will be in column 2) 
+#####
+
+result <- matrix(NA, nrow = n_sims, ncol = 2)
+
+#####
+#####  Run the simulation n_sims times 
+#####
+for(i in 1:n_sims){
+	
+	## Sample the data for each group, depending upon the specified mean and variance
+	y <- rnorm(n = sum(n_grp), mean = rep(grp_means, times = n_grp), sd = rep(sqrt(grp_var), times = n_grp))
+	group <- rep(1:3, times = n_grp)
+	sim_data <- as.data.frame(cbind(group, y))
+		
+	## Fit the one-way ANOVA model, then extract the F-statistic and the p-value
+	fit <- aov(y ~ factor(group), data = sim_data)
+	F_stat <- summary(fit)[[1]][1, 4]
+	p_val <- summary(fit)[[1]][1, 5]
+	
+	##  Store the results of simulation loop i in row i of the results matrix
+	result[i, ] <- c(F_stat, p_val)
+}
+```
+
+```{r, echo=TRUE}
+#####
+#####  Calculate the observed type I error rate
+#####
+  
+n_reject <- sum(result[, 2] < .05 )	
+sim_type1_error <- n_reject / n_sims
+sim_type1_error	
+```
+
+```{r}
+#####
+#####  Plot the observed distribution of F-statistics vs. the theoretical distribution
+#####
+
+hist(result[, 1], xlab = "Simulated F-statistics", prob = T, ylim = c(0,1), breaks = 30)
+lines(seq(0, 10, by = .1), df(seq( 0, 10, by = .1), df1 = 3 - 1, df2 = sum(n_grp) - 3))
+```
+
+### b (iii)
+
+```{r}
+#####
+#####  Set the random number generator so that we all get the same results
+#####
+
+set.seed(111)
+
+
+#####
+#####  Set the simulation parameters
+#####
+
+n_sims <- 5000				## The total number of simulations we intend to run
+n_grp <- c(30, 30, 30)			## The number of observations per group
+grp_means <- c(1, 1, 1)		## The true mean of the distribution each group is sampled from
+grp_var <- c(1, 1, 1)			## The true variance of each observation from each of the three groups		
+
+#####
+#####  Initialize the matrix that will hold the results of our tests 
+#####  (test statistics will be in column 1; corresponding p-values will be in column 2) 
+#####
+
+result <- matrix(NA, nrow = n_sims, ncol = 2)
+
+#####
+#####  Run the simulation n_sims times 
+#####
+for(i in 1:n_sims){
+	
+	## Sample the data for each group, depending upon the specified mean and variance
+	y <- rnorm(n = sum(n_grp), mean = rep(grp_means, times = n_grp), sd = rep(sqrt(grp_var), times = n_grp))
+	group <- rep(1:3, times = n_grp)
+	sim_data <- as.data.frame(cbind(group, y))
+		
+	## Fit the one-way ANOVA model, then extract the F-statistic and the p-value
+	fit <- aov(y ~ factor(group), data = sim_data)
+	F_stat <- summary(fit)[[1]][1, 4]
+	p_val <- summary(fit)[[1]][1, 5]
+	
+	##  Store the results of simulation loop i in row i of the results matrix
+	result[i, ] <- c(F_stat, p_val)
+}
+```
+
+```{r, echo=TRUE}
+#####
+#####  Calculate the observed type I error rate
+#####
+  
+n_reject <- sum(result[, 2] < .05 )	
+sim_type1_error <- n_reject / n_sims
+sim_type1_error	
+```
+
+```{r}
+#####
+#####  Plot the observed distribution of F-statistics vs. the theoretical distribution
+#####
+
+hist(result[, 1], xlab = "Simulated F-statistics", prob = T, ylim = c(0,1), breaks = 30)
+lines(seq(0, 10, by = .1), df(seq( 0, 10, by = .1), df1 = 3 - 1, df2 = sum(n_grp) - 3))
+```
+
+\newpage 
+## Problem 2
+
+### (a)
+
+Source     | SS      | df     | MS     | F
+---------- | ------- | ------ | ------ | ---------
+Treatment  | 4.66    | 2      | 2.33   | 1.674  
+Error      | 197.64  | 142    | 1.392  | 
+Total      | 202.3   | 144    |        | 
+
+### (b)
+
+```{r}
+pf(1.674, 2, 142, lower.tail = FALSE)
+```
+
+\newpage
+## Problem 3
+
+### (a) & (b)
+
+```{r, echo=FALSE}
+# Simulating the Two-way ANOVA Model
+###
+# install.packages("dplyr")
+# install.packages("ggplot2")
+library(dplyr)
+library(ggplot2)
+###
+
+# This function will return a data frame containing response values generated
+# from a two-way ANOVA model with the specified parameters.
+simulate_data <- function(mu, alpha, beta, delta, K, sigma) {
+  I <- length(alpha)
+  J <- length(beta)
+  dat <- as.data.frame(expand.grid(i = 1:I, j = 1:J, k = 1:K, Y = NA))
+  for (obs in 1:nrow(dat)) {
+    dat$Y[obs] <- with(dat, mu + alpha[i[obs]] + beta[j[obs]] + delta[i[obs], j[obs]] + rnorm(1, 0, sigma))
+  }
+  return(dat)
+}
+
+###
+# Simulate Data with no interactions
+I <- 2 # Levels in Trt A
+J <- 3 # Levels in Trt B
+K <- 1000 # Obs per cell
+
+mu <- 10
+alpha <- c(-0.5, 0.5)
+beta <- c(-1, 0, 1)
+delta <- matrix(c(0, 0, 0, 0, 0, 0), nrow = length(alpha), ncol = length(beta))
+sigma <- 1
+
+dat <- simulate_data(mu, alpha, beta, delta, K, sigma)
+
+dat_grp_means <- dat %>% group_by(i, j) %>% summarize(grp_mean = mean(Y))
+```
+
+The true interaction plot consists of two parallel lines.
+
+```{r}
+ggplot(dat_grp_means) + 
+  geom_line(aes(x = factor(j), y = grp_mean, group = factor(i), linetype = factor(i), color = factor(i)), size = 2)
+```
+
+### (c)
+
+The true deltas are 
+
+$$\delta = \begin{pmatrix} -1 & 2 & -1\\ 1 & -2 & 1\end{pmatrix}.$$
+
+```{r, echo=TRUE}
+####
+K <- 10000
+mu <- 1
+alpha <- c(-0.5, 0.5)
+beta <- c(-1, 0, 1)
+delta <- matrix(c(-1, 1, 2, -2, -1, 1), nrow = length(alpha), ncol = length(beta))
+sigma <- 1
+
+simulate_data <- function(mu, alpha, beta, delta, K, sigma) {
+  I <- length(alpha)
+  J <- length(beta)
+  dat <- as.data.frame(expand.grid(i = 1:I, j = 1:J, k = 1:K, Y = NA))
+  for (obs in 1:nrow(dat)) {
+    dat$Y[obs] <- with(dat, mu + alpha[i[obs]] + beta[j[obs]] + delta[i[obs], j[obs]] + rnorm(1, 0, sigma))
+  }
+  return(dat)
+}
+
+dat <- simulate_data(mu, alpha, beta, delta, K, sigma)
+dat_grp_means <- dat %>% group_by(i, j) %>% summarize(grp_mean = mean(Y))
+
+ggplot(dat_grp_means) + 
+  geom_line(aes(x = factor(j), y = grp_mean, group = factor(i), linetype = factor(i), color = factor(i)), size = 2)
+```
+
+\newpage
+## Problem 4
+
+### (a)
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+dat_raw <-
+read_csv(url("https://raw.githubusercontent.com/dspluta/STAT120C/master/Data/Chapter%2012/iron.csv"))
+```
+
+```{r}
+dat <- dat_raw %>% 
+  gather(key = "trt", value = "Y") %>% 
+  mutate(form = stringr::str_split(trt, " ", simplify = TRUE)[, 1],
+         dose = stringr::str_split(trt, " ", simplify = TRUE)[, 2])
+
+# Alternative way
+ggplot(dat) + 
+  geom_boxplot(aes(x = form, y = Y, group = form, fill = form), alpha = 0.5) + 
+  facet_grid(cols = vars(dose))
+```
+
+\newpage
+### (b)
+
+
+```{r}
+fit <- lm(Y ~ form, data = dat)
+knitr::kable(anova(fit))
+```
+
+### (c)
+
+```{r}
+fit <- lm(Y ~ factor(dose), data = dat)
+knitr::kable(anova(fit))
+```
+
+### (d)
+
+```{r}
+fit <- lm(Y ~ form*factor(dose), data = dat)
+knitr::kable(anova(fit))
+```
+
+\newpage
+
+## Problem 5
+
+### (a) See class notes.
+
+### (b)
+
+Yes, it is possible to have interactions with no main effects, although this requires a specific form of symmetry in the interaction plot due to the constraints $\sum_i \delta_{ij} = \sum_j \delta_{ij} = 0$.  For instance,
+
+```{r, echo=TRUE}
+####
+K <- 10000
+mu <- 1
+alpha <- c(0, 0)
+beta <- c(0, 0, 0)
+delta <- matrix(c(-1, 1, 2, -2, -1, 1), nrow = length(alpha), ncol = length(beta))
+sigma <- 1
+
+simulate_data <- function(mu, alpha, beta, delta, K, sigma) {
+  I <- length(alpha)
+  J <- length(beta)
+  dat <- as.data.frame(expand.grid(i = 1:I, j = 1:J, k = 1:K, Y = NA))
+  for (obs in 1:nrow(dat)) {
+    dat$Y[obs] <- with(dat, mu + alpha[i[obs]] + beta[j[obs]] + delta[i[obs], j[obs]] + rnorm(1, 0, sigma))
+  }
+  return(dat)
+}
+
+dat <- simulate_data(mu, alpha, beta, delta, K, sigma)
+dat_grp_means <- dat %>% group_by(i, j) %>% summarize(grp_mean = mean(Y))
+
+ggplot(dat_grp_means) + 
+  geom_line(aes(x = factor(j), y = grp_mean, group = factor(i), linetype = factor(i), color = factor(i)), size = 2)
+```
+
+
