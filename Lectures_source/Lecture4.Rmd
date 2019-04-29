@@ -16,7 +16,7 @@ output:
 
 ```{r setup, include=FALSE}
 options(htmltools.dir.version = FALSE)
-knitr::opts_chunk$set(echo = TRUE, fig.align="center")
+knitr::opts_chunk$set(echo = TRUE, fig.align="center", cache = TRUE)
 library(ggplot2)
 library(dplyr)
 library(readr)
@@ -76,8 +76,8 @@ To form a 95% percent confidence interval for $\mu$, we invert this hypothesis t
 Note that if we replace $\mu_0$ with the true parameter value $\mu$, $T \sim t(n - 1)$.  Let $t_{1 - \alpha / 2}(n - 1)$ be the $(1 - \alpha / 2)$ percentile of $t$.
 
 $$\begin{aligned}
-&P(t_{1 - \alpha / 2}(n - 1) < T < t_{1 - \alpha / 2}) = 1 - \alpha\\
-&P(t_{1 - \alpha / 2}(n - 1) < \frac{\bar X - \mu}{s / \sqrt{n}} < t_{1 - \alpha / 2}) = 1 - \alpha\\
+&P(-t_{1 - \alpha / 2}(n - 1) < T < t_{1 - \alpha / 2}) = 1 - \alpha\\
+&P(-t_{1 - \alpha / 2}(n - 1) < \frac{\bar X - \mu}{s / \sqrt{n}} < t_{1 - \alpha / 2}) = 1 - \alpha\\
 &P\left(\bar X - \frac{s}{\sqrt{n}} t_{1 - \alpha / 2}(n - 1) < \mu < \bar X + \frac{s}{\sqrt{n}} t_{1 - \alpha / 2}(n - 1)\right) = 1 - \alpha\\
 \end{aligned}$$
 
@@ -172,8 +172,8 @@ head(sim_results)
 ```
 
 
-```{r, echo=TRUE}
-mean(sim_results$covers)
+```{r, echo=FALSE}
+cat("Coverage: ", mean(sim_results$covers))
 ```
 
 ---
@@ -224,10 +224,10 @@ abline(h = 1 - alpha)
 
 ```{r}
 set.seed(123)
-n_sims <- 1000
-n <- 30
-mu1 <- 2
-mu2 <- 1
+n_sims <- 40
+n <- 25
+mu1 <- 0
+mu2 <- 0
 sigma <- 1
 alpha <- 0.05
 ```
@@ -235,14 +235,32 @@ alpha <- 0.05
 ```{r, echo=FALSE}
 sim_results1 <- conf_int_simulation(n_sims, n, mu1, sigma, alpha)
 sim_results2 <- conf_int_simulation(n_sims, n, mu2, sigma, alpha)
-combined_results <- data.frame(covers1 = sim_results1$covers, covers2 = sim_results2$covers)
+combined_results <- data.frame(covers1 = sim_results1$covers, covers2 = sim_results2$covers, sim = 1:n_sims)
 combined_results$covers_all <- combined_results$covers1 & combined_results$covers2
 ```
 
-```{r}
-mean(combined_results$covers_all)
-mean(sim_results1$covers)
-mean(sim_results2$covers)
+```{r, echo = FALSE}
+cat("Combined coverage probability: ", mean(combined_results$covers_all), "\n")
+cat("Group 1 coverage: ", mean(sim_results1$covers), "\n")
+cat("Group 2 coverage: ", mean(sim_results2$covers), "\n")
+```
+
+---
+
+# Multiple Testing
+
+```{r, echo=FALSE}
+sim_results <- bind_rows(sim_results1, sim_results2)
+sim_results$grp <- rep(c(1, 2), each = n_sims)
+sim_results$sim <- 1:n_sims
+```
+
+
+```{r, echo=FALSE}
+ggplot(sim_results) + 
+  geom_segment(aes(y = sim, yend = sim, x = lwr, xend = upr, color = covers), size = 1.3) + 
+  xlab("CI for mu") + 
+  facet_grid(cols = vars(grp))
 ```
 
 
@@ -252,10 +270,10 @@ mean(sim_results2$covers)
 
 ```{r}
 set.seed(123)
-n_sims <- 1000
+n_sims <- 40
 n <- 30
-mu1 <- 2
-mu2 <- 1
+mu1 <- 0
+mu2 <- 0
 mu3 <- 0
 sigma <- 1
 alpha <- 0.05
@@ -269,10 +287,11 @@ combined_results <- data.frame(covers1 = sim_results1$covers, covers2 = sim_resu
 combined_results$covers_all <- combined_results$covers1 & combined_results$covers2 & combined_results$covers3
 ```
 
-```{r}
-mean(combined_results$covers_all)
-mean(sim_results2$covers)
-mean(sim_results2$covers)
+```{r, echo = FALSE}
+cat("Combined coverage probability: ", mean(combined_results$covers_all), "\n")
+cat("Group 1 coverage: ", mean(sim_results1$covers), "\n")
+cat("Group 2 coverage: ", mean(sim_results2$covers), "\n")
+cat("Group 3 coverage: ", mean(sim_results3$covers))
 ```
 
 ---
@@ -281,11 +300,12 @@ mean(sim_results2$covers)
 
 ```{r}
 set.seed(123)
-n_sims <- 1000
+n_sims <- 10000
 n <- 30
-mu1 <- 2
-mu2 <- 1
+mu1 <- 0
+mu2 <- 0
 mu3 <- 0
+mu4 <- 0
 sigma <- 1
 alpha <- 0.05
 ```
@@ -294,13 +314,199 @@ alpha <- 0.05
 sim_results1 <- conf_int_simulation(n_sims, n, mu1, sigma, alpha)
 sim_results2 <- conf_int_simulation(n_sims, n, mu2, sigma, alpha)
 sim_results3 <- conf_int_simulation(n_sims, n, mu3, sigma, alpha)
-combined_results <- data.frame(covers1 = sim_results1$covers, covers2 = sim_results2$covers, covers3 = sim_results3$covers)
-combined_results$covers_all <- combined_results$covers1 & combined_results$covers2 & combined_results$covers3
+sim_results4 <- conf_int_simulation(n_sims, n, mu4, sigma, alpha)
+combined_results <- data.frame(covers1 = sim_results1$covers, covers2 = sim_results2$covers, covers3 = sim_results3$covers, covers4 = sim_results4$covers)
+combined_results$covers_all <- combined_results$covers1 & combined_results$covers2 & combined_results$covers3 & combined_results$covers4
 ```
+
+```{r, echo = FALSE}
+cat("Combined coverage probability: ", mean(combined_results$covers_all), "\n")
+cat("Group 1 coverage: ", mean(sim_results1$covers), "\n")
+cat("Group 2 coverage: ", mean(sim_results2$covers), "\n")
+cat("Group 3 coverage: ", mean(sim_results3$covers), "\n")
+cat("Group 4 coverage: ", mean(sim_results4$covers))
+```
+
+---
+
+# Multiple Testing
+
+## Bonferroni Correction
+
+One method for controlling the familywise Type I error rate is the _Bonferroni correction_.
+
+- When conduction $K$ hypothesis tests simultaneously, the Bonferroni method adjusts the significance level 
+from $\alpha$ to $\alpha / K$.  
+
+- When constructing multiple confidence intervals for the one-sample normal case, this has the form
+
+$$\bar X \pm \frac{s}{\sqrt{n}}t_{1 - \alpha / (2K)}(n - 1).$$
+
+- The name of this method is from the Bonferroni inequality from probability theory, which can be stated as
+
+$$P\left(\cup_{k = 1}^K A_k\right) \leq \sum_{k = 1}^K P(A_k),$$
+
+for some set of events $A_k, k = 1, \dots, K$.
+
+---
+
+# Multiple Testing
+
+## Bonferroni Correction
+
+```{r, echo=TRUE}
+bonferroni_simulation <- function(n_sims, n, mu, sigma, K, alpha = 0.05) {
+  results <- data.frame(lwr = rep(NA, n_sims), upr = rep(NA, n_sims))
+  
+  for (k in 1:n_sims) {
+    x <- rnorm(n, mu, sigma)
+    x_bar <- mean(x)
+    s <- sd(x)
+    lwr <- x_bar - s / sqrt(n) * qt(1 - alpha / (2 * K), n - 1)
+    upr <- x_bar + s / sqrt(n) * qt(1 - alpha / (2 * K), n - 1)
+    results[k, ] <- c(lwr, upr)
+  }
+  results$sim_index <- 1:nrow(results)
+  results$covers <- (mu > results$lwr) & (mu < results$upr)
+
+  return(results)
+}
+```
+
+---
+
+# Multiple Testing
+
+## Bonferroni Correction
 
 ```{r}
-mean(combined_results$covers_all)
-mean(sim_results2$covers)
-mean(sim_results2$covers)
+set.seed(12)
+n_sims <- 40
+n <- 25
+mu1 <- 0
+mu2 <- 0
+sigma <- 1
+K <- 2
+alpha <- 0.05
 ```
 
+```{r, echo=FALSE}
+sim_results1 <- bonferroni_simulation(n_sims, n, mu1, sigma, K, alpha)
+sim_results2 <- bonferroni_simulation(n_sims, n, mu2, sigma, K, alpha)
+combined_results <- data.frame(covers1 = sim_results1$covers, covers2 = sim_results2$covers, sim = 1:n_sims)
+combined_results$covers_all <- combined_results$covers1 & combined_results$covers2
+```
+
+```{r, echo = FALSE}
+cat("Combined coverage probability: ", mean(combined_results$covers_all), "\n")
+cat("Group 1 coverage: ", mean(sim_results1$covers), "\n")
+cat("Group 2 coverage: ", mean(sim_results2$covers), "\n")
+```
+
+---
+
+# Multiple Testing
+
+## Bonferroni Correction
+
+```{r, echo=FALSE}
+sim_results <- bind_rows(sim_results1, sim_results2)
+sim_results$grp <- rep(c(1, 2), each = n_sims)
+sim_results$sim <- 1:n_sims
+```
+
+
+```{r, echo=FALSE}
+ggplot(sim_results) + 
+  geom_segment(aes(y = sim, yend = sim, x = lwr, xend = upr, color = covers), size = 1.3) + 
+  xlab("CI for mu") + 
+  facet_grid(cols = vars(grp))
+```
+
+---
+
+# Multiple Testing
+
+## Bonferroni Correction
+
+```{r}
+set.seed(12)
+n_sims <- 40
+n <- 25
+mu1 <- 0
+mu2 <- 0
+sigma <- 1
+K <- 2
+alpha <- 0.05
+```
+
+```{r, echo=TRUE}
+set.seed(12)
+bonf_sim_results1 <- bonferroni_simulation(n_sims, n, mu1, sigma, K, alpha)
+bonf_sim_results2 <- bonferroni_simulation(n_sims, n, mu2, sigma, K, alpha)
+set.seed(12)
+sim_results1 <- conf_int_simulation(n_sims, n, mu1, sigma, alpha)
+sim_results2 <- conf_int_simulation(n_sims, n, mu2, sigma, alpha)
+```
+
+
+---
+
+# Multiple Testing
+
+## Bonferroni Correction
+
+```{r, echo=FALSE}
+sim_results <- bind_rows(sim_results1, sim_results2)
+sim_results$grp <- rep(c(1, 2), each = n_sims)
+sim_results$sim <- 1:n_sims
+sim_results$lwr_bonf <- c(bonf_sim_results1$lwr, bonf_sim_results2$lwr)
+sim_results$upr_bonf <- c(bonf_sim_results1$upr, bonf_sim_results2$upr)
+```
+
+
+```{r, echo=FALSE}
+ggplot(sim_results) + 
+  geom_segment(aes(y = sim, yend = sim, x = lwr_bonf, xend = upr_bonf), color = "darkgreen", alpha = 0.75, size = 1.3) + 
+  geom_segment(aes(y = sim, yend = sim, x = lwr, xend = upr, color = covers), size = 1.3) + 
+  xlab("CI for mu") + 
+  facet_grid(cols = vars(grp))
+```
+
+
+---
+
+# Multiple Testing
+
+## Bonferroni Correction
+
+
+```{r}
+set.seed(123)
+n_sims <- 5000
+n <- 30
+mu1 <- 0
+mu2 <- 0
+mu3 <- 0
+mu4 <- 0
+sigma <- 1
+alpha <- 0.05
+K <- 4
+```
+
+```{r, echo=FALSE}
+sim_results1 <- bonferroni_simulation(n_sims, n, mu1, sigma, K, alpha)
+sim_results2 <- bonferroni_simulation(n_sims, n, mu2, sigma, K, alpha)
+sim_results3 <- bonferroni_simulation(n_sims, n, mu3, sigma, K, alpha)
+sim_results4 <- bonferroni_simulation(n_sims, n, mu4, sigma, K, alpha)
+combined_results <- data.frame(covers1 = sim_results1$covers, covers2 = sim_results2$covers, covers3 = sim_results3$covers, covers4 = sim_results4$covers)
+combined_results$covers_all <- combined_results$covers1 & combined_results$covers2 & combined_results$covers3 & combined_results$covers4
+```
+
+```{r, echo = FALSE}
+cat("Combined coverage probability: ", mean(combined_results$covers_all), "\n")
+cat("Group 1 coverage: ", mean(sim_results1$covers), "\n")
+cat("Group 2 coverage: ", mean(sim_results2$covers), "\n")
+cat("Group 3 coverage: ", mean(sim_results3$covers), "\n")
+cat("Group 4 coverage: ", mean(sim_results4$covers))
+```
