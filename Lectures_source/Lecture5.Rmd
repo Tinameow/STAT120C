@@ -1,0 +1,303 @@
+---
+title: "STAT 120 C"
+subtitle: "Introduction to Probability and Statistics III"
+author: "Dustin Pluta"
+date: "2019/05/14"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis-fonts, "my-theme.css"]
+    lib_dir: libs
+    mathjax: "https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_HTMLorMML"
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(echo = FALSE, fig.align="center", cache = TRUE)
+```
+
+# Lecture 5
+
+## Linear Regression Diagnostics
+
+Assumptions of the linear regression model:
+
+1. Errors are normally distributed.
+
+2. Errors are independent.
+
+3. Errors have constant variance.
+
+- Diagnostic plots help us determine
+
+    + if any of these assumptions are violated,
+
+    + if the model adequately captures the relationship of $X$ and $Y$,
+    
+    + if there are outliers in the data. 
+
+---
+
+# Linear Regression Diagnostics
+
+Consider $Y_i \sim \mathcal{N}(\beta_0 + \beta_1 X_i, \sigma^2)$, where $X_i$ is some observed (fixed) covariate for each $i = 1, \dots, n$.
+
+Let $\hat\beta_0$ and $\hat\beta_1$ be the MLEs for the regression coefficients.
+
+Denote the fitted values as $\hat Y_i = \hat\beta_0 + \hat\beta_1 X_i$, and the residuals as $\hat e_i = \hat Y_i - Y_i$.
+
+- To check for violation of the constant variance assumption, we examine the _residuals vs fitted plot_ (or the _residuals vs_ $X$ _plot_)
+
+
+---
+
+# Linear Regression Diagnostics
+
+```{r}
+## Scenario 1: Normal, independent, constant variance, 
+set.seed(1234)
+n <- 20
+X <- rnorm(n, 0, 1)
+beta_0 <- 0
+beta_1 <- 0.5
+sigma <- 1
+
+eps <- rnorm(n, 0, sigma)
+Y <- beta_0 + beta_1 * X + eps
+
+fit <- lm(Y ~ X)
+
+par(mfrow = c(1, 2))
+plot(X, Y, main = "Observed Data", pch = 21, bg = rgb(0.3, 0.3, 0.7, 0.7))
+abline(fit, col = "red", lwd = 2)
+plot(fitted(fit), resid(fit), main = "Residuals by Fitted Values", pch = 21, bg = rgb(0.3, 0.3, 0.7, 0.7))
+abline(h = 0, lwd = 2)
+```
+
+```{r, include=FALSE}
+qqnorm(resid(fit))
+qqline(resid(fit))
+```
+
+
+---
+
+# Linear Regression Diagnostics
+
+
+```{r}
+## Scenario 2: Larger n, Normal, independent, constant variance, 
+set.seed(1234)
+n <- 200
+X <- rnorm(n, 0, 1)
+beta_0 <- 0
+beta_1 <- 0.5
+sigma <- 1
+
+eps <- rnorm(n, 0, sigma)
+Y <- beta_0 + beta_1 * X + eps
+
+fit <- lm(Y ~ X)
+
+par(mfrow = c(1, 2))
+plot(X, Y, main = "Observed Data", pch = 21, bg = rgb(0.3, 0.3, 0.7, 0.7))
+abline(fit, col = "red", lwd = 2)
+plot(fitted(fit), resid(fit), main = "Residuals by Fitted Values", pch = 21, bg = rgb(0.3, 0.3, 0.7, 0.7))
+abline(h = 0, lwd = 2)
+```
+
+
+---
+
+# Linear Regression Diagnostics
+
+```{r}
+qqnorm(resid(fit))
+qqline(resid(fit))
+```
+
+
+---
+
+# Linear Regression Diagnostics
+
+```{r}
+## Scenario 3: Normal, independent, non-constant variance, 
+set.seed(1234)
+n <- 200
+X <- rnorm(n, 6, 2)
+beta_0 <- 3
+beta_1 <- 2
+sigma <- abs(X * beta_1) / 5
+
+eps <- rnorm(n, 0, sigma)
+Y <- beta_0 + beta_1 * X + eps
+
+fit <- lm(Y ~ X)
+
+par(mfrow = c(1, 2))
+plot(X, Y, main = "Observed Data", pch = 21, bg = rgb(0.3, 0.3, 0.7, 0.7))
+abline(fit, col = "red", lwd = 2)
+plot(fitted(fit), resid(fit), main = "Residuals by Fitted Values", pch = 21, bg = rgb(0.3, 0.3, 0.7, 0.7))
+abline(h = 0, lwd = 2)
+```
+
+---
+
+# Linear Regression Diagnostics
+
+```{r}
+qqnorm(resid(fit))
+qqline(resid(fit))
+```
+
+---
+
+# Linear Regression Diagnostics
+
+```{r}
+set.seed(1234)
+n <- 200
+X <- rnorm(n, 0, 1)
+beta_0 <- 0
+beta_1 <- -1
+sigma <- 1
+
+eps <- rnorm(n, 0, sigma)
+Y <- beta_0 + beta_1 * X^2 + eps
+
+fit <- lm(Y ~ X)
+
+par(mfrow = c(1, 2))
+plot(X, Y, main = "Observed Data", pch = 21, bg = rgb(0.3, 0.3, 0.7, 0.7))
+abline(fit, col = "red", lwd = 2)
+plot(fitted(fit), resid(fit), main = "Residuals by Fitted Values", pch = 21, bg = rgb(0.3, 0.3, 0.7, 0.7))
+abline(h = 0, lwd = 2)
+```
+
+---
+
+# Linear Regression Diagnostics
+
+```{r}
+par(mfrow = c(1, 2))
+plot(X, Y, main = "Observed Data", pch = 21, bg = rgb(0.3, 0.3, 0.7, 0.7))
+abline(fit, col = "red", lwd = 2)
+plot(X, resid(fit), main = "Residuals by Fitted Values", pch = 21, bg = rgb(0.3, 0.3, 0.7, 0.7))
+abline(h = 0, lwd = 2)
+```
+
+
+
+---
+
+# Linear Regression Diagnostics
+
+
+```{r}
+## Scenario 3: Normal, independent, non-constant variance, 
+set.seed(1234)
+n <- 200
+X <- rnorm(n, 2, 1)
+beta_0 <- 1
+beta_1 <- 0.5
+
+Y <- rpois(n, exp(beta_0 + beta_1 * X))
+
+fit <- lm(Y ~ X)
+
+par(mfrow = c(1, 2))
+plot(X, Y, main = "Observed Data", pch = 21, bg = rgb(0.3, 0.3, 0.7, 0.7))
+abline(fit, col = "red", lwd = 2)
+plot(fitted(fit), resid(fit), main = "Residuals by Fitted Values", pch = 21, bg = rgb(0.3, 0.3, 0.7, 0.7))
+abline(h = 0, lwd = 2)
+```
+
+
+---
+
+# Variance Stabilizing Transformation
+
+In some cases, if the response follows a non-normal distribution with a mean-variance relationship, a variance stabilizing transformation can be applied.
+
+Suppose $\text{Var}(Y_i | X_i) = \sigma(\mathbb{E}[Y_i | X_i])$ for some function $\sigma(\cdot)$.
+
+By the Central Limit Theorem
+
+$$\sqrt{n}(\bar Y - \mu) \overset{D}\to \mathcal{N}(0, \sigma^2(\mu)).$$
+
+---
+
+# Variance Stabilizing Transformation
+
+We want to transform the data by some function $g$ so that the resulting variance doesn't depend on $\mu$. By the Delta Method
+
+$$\sqrt{n}[g(\bar Y) - g(\mu)] \overset{D}\to \mathcal{N}(0, [g'(\mu)]^2\sigma^2(\mu)).$$
+
+Consequently, we can find a variance stabilizing $g$ by the following:
+
+$$\begin{aligned}
+(g'(\mu))^2\sigma^2(\mu) &= 1\\
+g'(\mu) &= \frac{1}{\sigma(\mu)}\\
+g(\mu) &= \int\frac{1}{\sigma(\mu)}\, d\mu
+\end{aligned}$$
+
+---
+
+# Variance Stabilizing Transformation
+
+#### Poisson Example
+
+If $Y \sim Pois$, then $\sigma^2(\mu) = \mu$.  Plugging this into the formula for $g$, we get
+
+$$g(\mu) = \int \frac{1}{\sqrt{\mu}} \, d\mu = 2\sqrt{\mu}$$
+
+If we transform the data by the square root, the resulting asymptotic distribution is
+
+$$\sqrt{n}(\sqrt{\bar Y} - \sqrt{\mu}) \overset{D}\to \mathcal{N}(0, 1/ 4)$$
+
+---
+
+# Variance Stabilizing Transformation
+
+```{r}
+## Scenario 3: Normal, independent, non-constant variance, 
+set.seed(1234)
+n <- 200
+X <- rnorm(n, 2, 1)
+beta_0 <- 1
+beta_1 <- 0.5
+
+Y <- rpois(n, exp(beta_0 + beta_1 * X))
+
+fit <- lm(sqrt(Y) ~ X)
+
+par(mfrow = c(1, 2))
+plot(X, sqrt(Y), main = "Observed Data", pch = 21, bg = rgb(0.3, 0.3, 0.7, 0.7))
+abline(fit, col = "red", lwd = 2)
+plot(fitted(fit), resid(fit), main = "Residuals by Fitted Values", pch = 21, bg = rgb(0.3, 0.3, 0.7, 0.7))
+abline(h = 0, lwd = 2)
+```
+
+---
+
+# Confidence and Prediction Intervals
+
+- The distribution of the fitted values $\hat Y_i$ is
+
+$$\hat \mu(X_i) \equiv \hat Y_i \sim \mathcal{N}\left(\beta_0 + \beta_1 X_i, \sigma^2\left[\frac{1}{n} + \frac{(X_i - \bar X)^2}{\sum_{i = 1}^n (X_i - \bar X)^2}\right]\right)$$
+
+- From this, we can calculate a $(1 - \alpha)$ 100% __Confidence Interval__ for the mean regression line at covariate value $X$ is
+
+$$\hat\mu(X) \pm t_{1 - \alpha / 2}(n - 2)\sqrt{s^2\left[\frac{1}{n} + \frac{(X_i - \bar X)^2}{\sum_{i = 1}^n (X_i - \bar X)^2}\right]}$$
+
+- A $(1 - \alpha)$ 100% __Prediction Interval__ for a new observation at covariate value $X_{new}$ is
+
+$$\hat Y_{new} \pm t_{1 - \alpha / 2}(n - 2)\sqrt{s^2\left[1 + \frac{1}{n} + \frac{(X_{new} - \bar X)^2}{\sum_{i = 1}^n (X_i - \bar X)^2}\right]}$$
+
+- See the code _LinearRegressionExample_Part2.R_ for a comparison of the confidence and prediction intervals.
+
+
